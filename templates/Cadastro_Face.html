@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Face</title>
+    <style>
+        /* Estilo geral */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        /* Container */
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        /* Título */
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #4a90e2;
+        }
+
+        /* Vídeo da câmera */
+        #video {
+            width: 97%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 5px solid #4a90e2;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Botões */
+        button {
+            background-color: #4a90e2;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+        }
+
+        /* Campo de input */
+        input[type="text"] {
+            width: 95%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 24px;
+            }
+            button {
+                font-size: 16px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Cadastro Face</h1>
+    <video id="video" autoplay></video>
+    <div>
+        <button id="startButton">Abrir Câmera</button>
+        <button id="captureButton">Capturar Imagem</button>
+    </div>
+    <input type="text" id="imageName" placeholder="Insira o nome da imagem" required>
+    <canvas id="canvas" style="display:none;"></canvas>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const startButton = document.getElementById('startButton');
+    const captureButton = document.getElementById('captureButton');
+    const canvas = document.getElementById('canvas');
+    const imageNameInput = document.getElementById('imageName');
+
+    // Função para iniciar a câmera
+    startButton.addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        } catch (error) {
+            console.error('Erro ao acessar a câmera:', error);
+            alert('Não foi possível acessar a câmera. Verifique as permissões.');
+        }
+    });
+
+    // Função para capturar a imagem e enviar para o servidor
+    captureButton.addEventListener('click', () => {
+        const imageName = imageNameInput.value.trim();
+
+        if (!imageName) {
+            alert('Por favor, insira um nome para a imagem.');
+            return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const dataURL = canvas.toDataURL('image/jpg');
+
+        // Enviar a imagem e o nome para o servidor
+        fetch('/upload', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image: dataURL, name: imageName })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao salvar a imagem');
+            }
+            return response.text();
+        })
+        .then(data => {
+            alert(data);
+            location.reload(); // Recarregar a página após o upload bem-sucedido
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Ocorreu um erro durante o upload. Tente novamente.');
+        });
+    });
+</script>
+
+</body>
+</html>

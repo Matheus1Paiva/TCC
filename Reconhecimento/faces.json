@@ -1,0 +1,16 @@
+{
+    "faces": [
+        {
+            "name": "Eliton",
+            "image_path": "../faces/Eliton.jpg"
+        },
+        {
+            "name": "Daniel",
+            "image_path": "../faces/Daniel.jpg"
+        },
+        {
+            "name": "Bruno",
+            "image_path": "../faces\\Bruno.jpg"
+        }
+    ]
+}
